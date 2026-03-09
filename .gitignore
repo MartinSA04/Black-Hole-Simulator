@@ -1,0 +1,33 @@
+# Meson build directory
+build/
+builddir/
+
+# Output renders
+output/
+
+# IDE / Editor
+.vscode/
+*.swp
+*.swo
+*~
+.idea/
+*.code-workspace
+
+# C++ compiled objects
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Meson downloaded subprojects (keep .wrap files and local subprojects)
+subprojects/packagecache/
+subprojects/SDL2*/
