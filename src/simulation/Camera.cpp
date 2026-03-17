@@ -1,6 +1,5 @@
 #include "Camera.h"
 #include <random>
-#include <iostream>
 
 void Camera::setPose(Point3D position, Point3D lookAt, Vector3D upHint)
 {
@@ -55,7 +54,7 @@ void Camera::generateRays(double t0, double dt_dlambda)
                 pr.x = ToSchwPosition(position_, t0);
                 pr.k = ToSchwRates(position_, dir, dt_dlambda);
 
-                photons_[antiAliasNum_ * y * w_ + x + aa] = pr;
+                photons_[photonIndex(x, y, aa)] = pr;
             }
         }
     }

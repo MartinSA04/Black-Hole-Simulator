@@ -31,3 +31,6 @@ Thumbs.db
 # Meson downloaded subprojects (keep .wrap files and local subprojects)
 subprojects/packagecache/
 subprojects/SDL2*/
+
+# clang
+.cache/*

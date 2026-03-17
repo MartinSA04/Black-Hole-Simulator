@@ -1,8 +1,10 @@
+#include "renderer.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "SimulationWindow.h"
 #include "stb_image_write.h"
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 
 void SimulationWindow::render_()
@@ -19,13 +21,13 @@ void SimulationWindow::render_()
     // TODO: These should use resolution input from gui.
     if (lowResCheck.isSelected())
     {
-        camera.setSize(width() / 8, height() / 8);
+        camera.setSize(static_cast<std::size_t>(width() / 8), static_cast<std::size_t>(height() / 8));
     }
     else
     {
-        camera.setSize(width(), height());
+        camera.setSize(static_cast<std::size_t>(width()), static_cast<std::size_t>(height()));
     }
-    int AANum = 1;
+    std::size_t AANum = 1;
     if (aaCheck.isSelected())
     {
         AANum = 5;
@@ -33,7 +35,13 @@ void SimulationWindow::render_()
     camera.setAANum(AANum);
     camera.generateRays();
 
-    scene.createAccretionDisk(2, 4, diskSlider.getValue(), (float)infillSlider.getValue() / 100.0, TDT4102::Color::yellow, TDT4102::Color::red);
+    scene.createAccretionDisk(
+        2,
+        4,
+        diskSlider.getValue(),
+        static_cast<float>(infillSlider.getValue()) / 100.0F,
+        TDT4102::Color::yellow,
+        TDT4102::Color::red);
 
     isRendering = true;
     renderProgress = 0.0;
@@ -66,34 +74,31 @@ void SimulationWindow::draw_frame()
 
 void SimulationWindow::draw_panel()
 {
-    // Panel background
-    draw_rectangle({0, 0}, 800, panelH, TDT4102::Color{25, 25, 35}, TDT4102::Color::transparent);
-    draw_line({0, panelH}, {800, panelH}, TDT4102::Color{50, 50, 65});
-    draw_line({800, 0}, {800, panelH}, TDT4102::Color{50, 50, 65});
+    draw_rectangle({0, 0}, panelW, height(), TDT4102::Color{25, 25, 35, 190}, TDT4102::Color::transparent);
+    draw_line({panelW, 0}, {panelW, height()}, TDT4102::Color{50, 50, 65});
 
-    // Slider labels
     TDT4102::Color labelColor{170, 170, 185};
     TDT4102::Color valueColor{130, 195, 255};
     unsigned int labelSize = 20;
 
-    // Row 2 labels + values
-    draw_text({20, 60}, "Disk Particles", labelColor, labelSize);
-    draw_text({385, 60}, std::to_string(diskSlider.getValue()) + "  ", valueColor, labelSize);
-    draw_text({430, 60}, "Infill", labelColor, labelSize);
-    draw_text({755, 60}, std::to_string(infillSlider.getValue()) + "%  ", valueColor, labelSize);
+    draw_text({panelPadding, 160}, "Disk Particles", labelColor, labelSize);
+    draw_text({valueX, 160}, std::to_string(diskSlider.getValue()), valueColor, labelSize);
 
-    // Row 3 labels + values
-    draw_text({20, 92}, "Camera Angle", labelColor, labelSize);
-    draw_text({385, 92}, std::to_string(thetaSlider.getValue()) + "  ", valueColor, labelSize);
-    draw_text({430, 92}, "Roll", labelColor, labelSize);
-    draw_text({755, 92}, std::to_string(rollSlider.getValue()) + "  ", valueColor, labelSize);
+    draw_text({panelPadding, 255}, "Infill", labelColor, labelSize);
+    draw_text({valueX, 255}, std::to_string(infillSlider.getValue()) + "%", valueColor, labelSize);
+
+    draw_text({panelPadding, 350}, "Camera Angle", labelColor, labelSize);
+    draw_text({valueX, 350}, std::to_string(thetaSlider.getValue()), valueColor, labelSize);
+
+    draw_text({panelPadding, 445}, "Roll", labelColor, labelSize);
+    draw_text({valueX, 445}, std::to_string(rollSlider.getValue()), valueColor, labelSize);
 }
 
 void SimulationWindow::draw_progress_bar()
 {
-    const int barX = 20;
-    const int barY = 122;
-    const int barW = 760;
+    const int barX = panelPadding;
+    const int barY = 570;
+    const int barW = sliderW;
     const int barH = 32;
 
     // Background
@@ -126,21 +131,27 @@ void SimulationWindow::draw_progress_bar()
 void SimulationWindow::writeFrameToFile()
 {
     std::vector<uint8_t> rgba(camera.width() * camera.height() * 4);
-    int w = camera.width();
-    int h = camera.height();
-    for (int y = 0; y < h; ++y)
+    const std::size_t w = camera.width();
+    const std::size_t h = camera.height();
+    for (std::size_t y = 0; y < h; ++y)
     {
-        for (int x = 0; x < w; ++x)
+        for (std::size_t x = 0; x < w; ++x)
         {
-            int i = (y * w + x) * 4;
-            TDT4102::Color color = frame.at(y * w + x);
-            rgba[i + 0] = (uint8_t)color.redChannel;   // R
-            rgba[i + 1] = (uint8_t)color.greenChannel; // G
-            rgba[i + 2] = (uint8_t)color.blueChannel;  // B
-            rgba[i + 3] = (uint8_t)color.alphaChannel; // A
+            const std::size_t i = (y * w + x) * 4;
+            const TDT4102::Color color = frame.at(y * w + x);
+            rgba[i] = static_cast<uint8_t>(color.redChannel);       // R
+            rgba[i + 1] = static_cast<uint8_t>(color.greenChannel); // G
+            rgba[i + 2] = static_cast<uint8_t>(color.blueChannel);  // B
+            rgba[i + 3] = static_cast<uint8_t>(color.alphaChannel); // A
         }
     }
-    stbi_write_png(imagePath.data(), w, h, 4, rgba.data(), w * 4);
+    stbi_write_png(
+        imagePath.data(),
+        static_cast<int>(w),
+        static_cast<int>(h),
+        4,
+        rgba.data(),
+        static_cast<int>(w * 4));
     image = TDT4102::Image{imagePath};
 }
 

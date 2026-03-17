@@ -2,31 +2,41 @@
 #include <atomic>
 #include <thread>
 #include <algorithm>
+#include <cstddef>
 #include <unordered_map>
 #include <functional>
 
-static TDT4102::Color avgColor(std::vector<TDT4102::Color> colors)
+static unsigned char toColorChannel(unsigned int value)
 {
+    return static_cast<unsigned char>(value);
+}
+
+TDT4102::Color avgColor(const std::vector<TDT4102::Color> &colors)
+{
+    const auto colorCount = static_cast<unsigned int>(colors.size());
     unsigned int rChannel = 0;
     unsigned int gChannel = 0;
     unsigned int bChannel = 0;
     unsigned int alphaChannel = 0;
-    for (int i = 0; i < colors.size(); ++i)
+    for (const TDT4102::Color color : colors)
     {
-        TDT4102::Color color = colors.at(i);
         rChannel += color.redChannel;
         gChannel += color.greenChannel;
         bChannel += color.blueChannel;
         alphaChannel += color.alphaChannel;
     }
-    rChannel /= colors.size();
-    gChannel /= colors.size();
-    bChannel /= colors.size();
-    alphaChannel /= colors.size();
-    return TDT4102::Color{rChannel, gChannel, bChannel, alphaChannel};
+    rChannel /= colorCount;
+    gChannel /= colorCount;
+    bChannel /= colorCount;
+    alphaChannel /= colorCount;
+    return TDT4102::Color{
+        toColorChannel(rChannel),
+        toColorChannel(gChannel),
+        toColorChannel(bChannel),
+        toColorChannel(alphaChannel)};
 }
 
-static RayStatus getStatus(std::vector<RayStatus> statuses)
+RayStatus getStatus(const std::vector<RayStatus> &statuses)
 {
     std::unordered_map<RayStatus, int> counts;
     for (RayStatus s : statuses)
@@ -69,23 +79,6 @@ static void fillRect(
             frame[(std::size_t)y * (std::size_t)W + (std::size_t)x] = color;
         }
     }
-}
-
-static bool isUniform(std::vector<Sample> samples, const double uniformEps)
-{
-
-    const RayStatus st = samples[0].status;
-    const TDT4102::Color c = samples[0].color;
-    double err = 0.0;
-    for (Sample &s : samples)
-    {
-        if (s.status != st)
-            return false;
-        const double cDiff = colorDiff(c, s.color);
-        if (cDiff > err)
-            err = cDiff;
-    }
-    return (err <= uniformEps);
 }
 
 static inline bool checkSample(const Sample &s, const Sample &ref, double eps)
@@ -209,9 +202,11 @@ static void renderQuad(
 
 void render(const Scene &scene, Camera &cam, std::vector<TDT4102::Color> &frame, std::function<void(double)> *loadFunction)
 {
-    const int W = cam.width();
-    const int H = cam.height();
-    frame.resize(W * H);
+    const std::size_t width = cam.width();
+    const std::size_t height = cam.height();
+    const int W = static_cast<int>(width);
+    const int H = static_cast<int>(height);
+    frame.resize(width * height);
 
     // Renders 64X64 tiles
     const int tile = 64;

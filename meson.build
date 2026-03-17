@@ -10,7 +10,8 @@ std_lib_facilities_dep = dependency('std_lib_facilities', fallback: ['std_lib_fa
 
 compiler_flags = ['-Wconversion', '-fdiagnostics-color=always', '-Werror=return-type', '-static']
 
-inc = include_directories('src/math', 'src/simulation', 'include')
+project_inc = include_directories('src/math', 'src/simulation')
+third_party_inc = include_directories('include', is_system: true)
 
 src = [
   'src/simulation/BlackHole.cpp',
@@ -31,7 +32,7 @@ exe = executable(
   'program',
   src,
 'main.cpp',
-  include_directories : inc,
+  include_directories : [project_inc, third_party_inc],
   dependencies : [std_lib_facilities_dep, animationwindow_dep],
   cpp_args : compiler_flags,
   link_args : ld_flags

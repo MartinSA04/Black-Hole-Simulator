@@ -28,7 +28,7 @@ public:
 
 class AccretionDisk final : public SceneObject
 {
-    double innerRadius2_, outerRadius2_, innerRadius_, outerRadius_, ringWidth_, fullRingWidth_, width_;
+    double innerRadius2_, outerRadius2_, innerRadius_, ringWidth_, fullRingWidth_, width_;
     int numRings_;
     std::vector<TDT4102::Color> colors;
 

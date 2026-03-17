@@ -1,33 +1,41 @@
 #include "scene.h"
 #include "RK45.h"
+#include <algorithm>
+#include <cmath>
+
+static unsigned char toColorChannel(double value)
+{
+    const long rounded = std::lround(value);
+    return static_cast<unsigned char>(std::clamp(rounded, 0L, 255L));
+}
 
 static TDT4102::Color interpolateColor(TDT4102::Color a, TDT4102::Color b, float u)
 {
     return TDT4102::Color{
-        a.redChannel * u + b.redChannel * (1 - u),
-        a.greenChannel * u + b.greenChannel * (1 - u),
-        a.blueChannel * u + b.blueChannel * (1 - u),
-        a.alphaChannel * u + b.alphaChannel * (1 - u)};
+        toColorChannel(a.redChannel * u + b.redChannel * (1.0F - u)),
+        toColorChannel(a.greenChannel * u + b.greenChannel * (1.0F - u)),
+        toColorChannel(a.blueChannel * u + b.blueChannel * (1.0F - u)),
+        toColorChannel(a.alphaChannel * u + b.alphaChannel * (1.0F - u))};
 }
 
 AccretionDisk::AccretionDisk(double innerRadius, double width, int numRings, float ringFill, TDT4102::Color startColor, TDT4102::Color endColor)
-    : innerRadius_(innerRadius),
-      innerRadius2_(innerRadius * innerRadius),
-      width_(width),
-      outerRadius_(innerRadius + width),
+    : innerRadius2_(innerRadius * innerRadius),
+      outerRadius2_((innerRadius + width) * (innerRadius + width)),
+      innerRadius_(innerRadius),
+      ringWidth_(0.0),
       fullRingWidth_(width / numRings),
+      width_(width),
       numRings_(numRings)
 {
     ringWidth_ = fullRingWidth_ * ringFill;
-    outerRadius2_ = outerRadius_ * outerRadius_;
     for (int i = 0; i < numRings; ++i)
     {
-        float u = (float)i / (numRings - 1);
+        const float u = static_cast<float>(i) / static_cast<float>(numRings - 1);
         colors.push_back(interpolateColor(startColor, endColor, u));
     }
 }
 
-bool AccretionDisk::hitSegment(const BlackHole &blackHole, const Photon &prev, const Photon &curr, HitInfo &hit) const
+bool AccretionDisk::hitSegment(const BlackHole &, const Photon &prev, const Photon &curr, HitInfo &hit) const
 {
     // early exit most of the time :)
     if ((prev.x.theta > M_PI_2) == (curr.x.theta > M_PI_2))
@@ -62,7 +70,7 @@ bool AccretionDisk::hitSegment(const BlackHole &blackHole, const Photon &prev, c
         return false;
 
     hit.u = u;
-    hit.color = colors[ringIdx];
+    hit.color = colors[static_cast<std::size_t>(ringIdx)];
     return true;
 }
 

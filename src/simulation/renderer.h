@@ -2,11 +2,12 @@
 #include "scene.h"
 #include "Camera.h"
 #include <chrono>
+#include <cstddef>
 #include <iostream>
 #include <functional>
 
-static TDT4102::Color avgColor(std::vector<TDT4102::Color> colors);
-static RayStatus getStatus(std::vector<RayStatus> statuses);
+TDT4102::Color avgColor(const std::vector<TDT4102::Color> &colors);
+RayStatus getStatus(const std::vector<RayStatus> &statuses);
 
 struct Sample
 {
@@ -28,15 +29,17 @@ class RayCache
     static inline long long cacheTime_ = 0;
     static inline int traceCount_ = 0;
 
-    Sample tracePixel(std::size_t px, std::size_t py)
+    Sample tracePixel(int px, int py)
     {
         auto start = std::chrono::high_resolution_clock::now();
 
         std::vector<TDT4102::Color> colors;
         std::vector<RayStatus> statuses;
-        for (int aaNum = 0; aaNum < cam_.aaNum(); ++aaNum)
+        colors.reserve(cam_.aaNum());
+        statuses.reserve(cam_.aaNum());
+        for (std::size_t aaNum = 0; aaNum < cam_.aaNum(); ++aaNum)
         {
-            Photon photon = cam_.photon(px, py, aaNum);
+            Photon photon = cam_.photon(static_cast<std::size_t>(px), static_cast<std::size_t>(py), aaNum);
             double h = 0.2;
             double tol = 1e-7;
             TDT4102::Color color{};
@@ -81,16 +84,16 @@ public:
         return samples_[idx];
     }
 
-    int camW() const { return cam_.width(); }
+    int camW() const { return static_cast<int>(cam_.width()); }
 
     static void printStats()
     {
         std::cout << "\n=== Profile Stats ===\n";
         std::cout << "Ray trace calls: " << traceCount_ << "\n";
-        std::cout << "Total trace time: " << traceTime_ / 1000.0 << " ms\n";
-        std::cout << "Total cache time: " << cacheTime_ / 1000.0 << " ms\n";
+        std::cout << "Total trace time: " << static_cast<double>(traceTime_) / 1000.0 << " ms\n";
+        std::cout << "Total cache time: " << static_cast<double>(cacheTime_) / 1000.0 << " ms\n";
         if (traceCount_ > 0)
-            std::cout << "Avg per trace: " << (double)traceTime_ / traceCount_ << " μs\n";
+            std::cout << "Avg per trace: " << static_cast<double>(traceTime_) / static_cast<double>(traceCount_) << " us\n";
         std::cout << "=====================\n\n";
     }
 };
