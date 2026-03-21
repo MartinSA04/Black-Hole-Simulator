@@ -37,6 +37,29 @@ void TDT4102::Image::draw(SDL_Renderer *renderer, TDT4102::Point location, int i
     SDL_RenderCopyEx(renderer, texture, nullptr, &imageBounds, angleDegrees, &rotationOrigin_sdl, SDL_FLIP_NONE);
 }
 
+void TDT4102::Image::drawRegion(SDL_Renderer* renderer, TDT4102::Point location, int imageWidth, int imageHeight, TDT4102::Point sourceTopLeftPoint,  int sourceWidth, int sourceHeight, SDL_RendererFlip flip) {
+    if(texture == nullptr) {
+        load(renderer);
+    }
+
+    SDL_Rect sourceBounds {sourceTopLeftPoint.x, sourceTopLeftPoint.y, width, height};
+
+    if(sourceWidth > 0 && sourceHeight > 0) {
+        sourceBounds.w = sourceWidth;
+        sourceBounds.h = sourceHeight;
+    }
+
+    SDL_Rect imageBounds {location.x, location.y, width, height};
+
+    if(imageWidth > 0 && imageHeight > 0) {
+        imageBounds.w = imageWidth;
+        imageBounds.h = imageHeight;
+    }
+
+    SDL_RenderCopyEx(renderer, texture, &sourceBounds, &imageBounds, 0.0, nullptr, flip);
+}
+
+
 TDT4102::Image::~Image() {
     if (texture != nullptr) {
         SDL_DestroyTexture(texture);

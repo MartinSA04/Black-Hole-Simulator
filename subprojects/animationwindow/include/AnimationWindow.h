@@ -103,7 +103,8 @@ class AnimationWindow {
     void draw_circle(TDT4102::Point centre, int radius, TDT4102::Color color = TDT4102::Color::dark_blue, TDT4102::Color borderColor = TDT4102::Color::transparent);
     void draw_rectangle(TDT4102::Point topLeftPoint, int width, int height, TDT4102::Color color = TDT4102::Color::dark_green, TDT4102::Color borderColor = TDT4102::Color::transparent);
     void draw_image(TDT4102::Point topLeftPoint, TDT4102::Image& image, int imageWidth = 0, int imageHeight = 0, double rotationAngleDegrees = 0, TDT4102::Point rotationOrigin = {0, 0});
-    void draw_text(TDT4102::Point bottomLeftPoint, std::string textToShow, TDT4102::Color color = TDT4102::Color::black, unsigned int fontSize = 20, TDT4102::Font font = TDT4102::Font::arial);
+    void draw_image_region(TDT4102::Point topLeftPoint, TDT4102::Image& image, int imageWidth = 0, int imageHeight = 0, TDT4102::Point sourceTopLeftPoint = {0, 0},  int sourceWidth = 0, int sourceHeight = 0, TDT4102::FlipImage flip = TDT4102::FlipImage::NONE);
+    void draw_text(TDT4102::Point topLeftPoint, std::string textToShow, TDT4102::Color color = TDT4102::Color::black, unsigned int fontSize = 20, TDT4102::Font font = TDT4102::Font::arial);
     void draw_line(TDT4102::Point start, TDT4102::Point end, TDT4102::Color color = TDT4102::Color::black);
     void draw_triangle(TDT4102::Point vertex0, TDT4102::Point vertex1, TDT4102::Point vertex2, TDT4102::Color color = TDT4102::Color::yellow);
     void draw_quad(TDT4102::Point vertex0, TDT4102::Point vertex1, TDT4102::Point vertex2, TDT4102::Point vertex3, TDT4102::Color color = TDT4102::Color::cyan);

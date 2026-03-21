@@ -5,6 +5,7 @@
 #include "widgets/Button.h"
 #include "widgets/Slider.h"
 #include "widgets/CheckBox.h"
+#include "widgets/TextInput.h"
 #include "BlackHole.h"
 
 class SimulationWindow : public TDT4102::AnimationWindow
@@ -13,6 +14,18 @@ class SimulationWindow : public TDT4102::AnimationWindow
     static constexpr int panelPadding = 20;
     static constexpr int sliderW = panelW - 2 * panelPadding;
     static constexpr int valueX = 285;
+    static constexpr int colorSectionLabelY = 610;
+    static constexpr int colorInputY = 665;
+    static constexpr int colorInputW = 110;
+    static constexpr int colorInputH = 32;
+    static constexpr int colorPreviewSize = 32;
+    static constexpr int colorPreviewGap = 16;
+    static constexpr int colorGroupGap = 20;
+    static constexpr int colorGroupW = colorInputW + colorPreviewGap + colorPreviewSize;
+    static constexpr int startColorInputX = panelPadding;
+    static constexpr int startColorPreviewX = startColorInputX + colorInputW + colorPreviewGap;
+    static constexpr int endColorInputX = startColorInputX + colorGroupW + colorGroupGap;
+    static constexpr int endColorPreviewX = endColorInputX + colorInputW + colorPreviewGap;
 
     TDT4102::Button renderButton{{panelPadding, 20}, 140, 35, "Render"};
     TDT4102::CheckBox aaCheck{{180, 20}, 160, 35, "Anti-Aliasing"};
@@ -22,6 +35,8 @@ class SimulationWindow : public TDT4102::AnimationWindow
     TDT4102::Slider infillSlider{{panelPadding, 310}, sliderW, 25, 0, 100, 50, 1};
     TDT4102::Slider thetaSlider{{panelPadding, 405}, sliderW, 25, 10, 170, 80, 1};
     TDT4102::Slider rollSlider{{panelPadding, 500}, sliderW, 25, -180, 180, 0, 1};
+    TDT4102::TextInput startColorInput{{startColorInputX, colorInputY}, colorInputW, colorInputH, "#FFFF00"};
+    TDT4102::TextInput endColorInput{{endColorInputX, colorInputY}, colorInputW, colorInputH, "#FF0000"};
     bool frameRendered = false;
     bool isRendering = false;
     double renderProgress = 0.0;
@@ -56,6 +71,16 @@ public:
           camera{static_cast<std::size_t>(w), static_cast<std::size_t>(h), 70}
     {
         setBackgroundColor(TDT4102::Color{0x16161d});
+        startColorInput.setTextColor(TDT4102::Color{220, 220, 235});
+        startColorInput.setBoxColor(TDT4102::Color{35, 35, 48});
+        startColorInput.setBoxColorHover(TDT4102::Color{35, 35, 48});
+        startColorInput.setBoxColorActive(TDT4102::Color{35, 35, 48});
+        startColorInput.setBorderColor(TDT4102::Color{55, 55, 70});
+        endColorInput.setTextColor(TDT4102::Color{220, 220, 235});
+        endColorInput.setBoxColor(TDT4102::Color{35, 35, 48});
+        endColorInput.setBoxColorHover(TDT4102::Color{35, 35, 48});
+        endColorInput.setBoxColorActive(TDT4102::Color{35, 35, 48});
+        endColorInput.setBorderColor(TDT4102::Color{55, 55, 70});
         std::function<void()> renderLambda = [&]()
         { newRender = true; };
         std::function<void()> renderLambdaLowRes = [&]()
@@ -67,6 +92,8 @@ public:
         thetaSlider.setCallback(renderLambdaLowRes);
         rollSlider.setCallback(renderLambdaLowRes);
         lowResCheck.setCallback(renderLambdaLowRes);
+        startColorInput.setCallback(renderLambdaLowRes);
+        endColorInput.setCallback(renderLambdaLowRes);
         add(renderButton);
         add(aaCheck);
         add(lowResCheck);
@@ -74,6 +101,8 @@ public:
         add(infillSlider);
         add(thetaSlider);
         add(rollSlider);
+        add(startColorInput);
+        add(endColorInput);
     };
 
     void run();

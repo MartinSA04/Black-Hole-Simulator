@@ -3,9 +3,53 @@
 #include "SimulationWindow.h"
 #include "stb_image_write.h"
 #include <chrono>
+#include <cctype>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <string_view>
+
+namespace
+{
+TDT4102::Color parseHexColor(const std::string &text, TDT4102::Color fallback)
+{
+    std::string_view value{text};
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())))
+    {
+        value.remove_prefix(1);
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())))
+    {
+        value.remove_suffix(1);
+    }
+
+    if (value.starts_with('#'))
+    {
+        value.remove_prefix(1);
+    }
+    else if (value.starts_with("0x") || value.starts_with("0X"))
+    {
+        value.remove_prefix(2);
+    }
+
+    if (value.size() != 6 && value.size() != 8)
+    {
+        return fallback;
+    }
+
+    unsigned int hexValue = 0;
+    const char *begin = value.data();
+    const char *end = value.data() + value.size();
+    const auto [ptr, error] = std::from_chars(begin, end, hexValue, 16);
+    if (error != std::errc{} || ptr != end)
+    {
+        return fallback;
+    }
+
+    return TDT4102::Color{hexValue};
+}
+}
 
 void SimulationWindow::render_()
 {
@@ -40,8 +84,8 @@ void SimulationWindow::render_()
         4,
         diskSlider.getValue(),
         static_cast<float>(infillSlider.getValue()) / 100.0F,
-        TDT4102::Color::yellow,
-        TDT4102::Color::red);
+        parseHexColor(startColorInput.getText(), TDT4102::Color::yellow),
+        parseHexColor(endColorInput.getText(), TDT4102::Color::red));
 
     isRendering = true;
     renderProgress = 0.0;
@@ -92,6 +136,25 @@ void SimulationWindow::draw_panel()
 
     draw_text({panelPadding, 445}, "Roll", labelColor, labelSize);
     draw_text({valueX, 445}, std::to_string(rollSlider.getValue()), valueColor, labelSize);
+
+    const TDT4102::Color startColor = parseHexColor(startColorInput.getText(), TDT4102::Color::yellow);
+    const TDT4102::Color endColor = parseHexColor(endColorInput.getText(), TDT4102::Color::red);
+
+    draw_text({startColorInputX, colorSectionLabelY}, "Start", labelColor, labelSize);
+    draw_rectangle(
+        {startColorPreviewX, colorInputY},
+        colorPreviewSize,
+        colorPreviewSize,
+        startColor,
+        TDT4102::Color{55, 55, 70});
+
+    draw_text({endColorInputX, colorSectionLabelY}, "End", labelColor, labelSize);
+    draw_rectangle(
+        {endColorPreviewX, colorInputY},
+        colorPreviewSize,
+        colorPreviewSize,
+        endColor,
+        TDT4102::Color{55, 55, 70});
 }
 
 void SimulationWindow::draw_progress_bar()
